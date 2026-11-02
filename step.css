@@ -1,0 +1,11 @@
+.step-card{border-style:solid;border-color:#6a8eaa;background:#f6fafc}.step-status{font-size:12px;color:#46637b;margin-top:12px;min-height:1px}.step-status.error{color:#a64e30;background:#fff8f3;border-left:3px solid #d47c4c;padding:12px}.minor-upload{cursor:pointer;color:#32638a;text-decoration:underline;margin-left:12px;white-space:nowrap}.step-results{margin:0 0 47px}.step-intro{font-size:12px;color:var(--muted);margin:0 0 14px}.step-intro span{font-weight:800;color:var(--navy)}.step-layout{display:grid;grid-template-columns:240px 1fr;gap:14px}.step-list{background:white;border:1px solid var(--line);max-height:620px;overflow:auto}.step-list button{display:block;width:100%;border:0;border-bottom:1px solid #e7ecf0;background:white;padding:11px 13px;text-align:left;color:var(--ink)}.step-list button:hover,.step-list button.active{background:#eaf1f5}.step-list button strong{display:block;font-size:12px}.step-list button small{color:#718397;font-size:10px}.step-preview{background:#fff;border:1px solid var(--line);padding:10px;overflow:auto}.step-preview svg{width:100%;height:auto;display:block}.step-results .small-note{margin-top:13px}@media(max-width:750px){.step-layout{grid-template-columns:1fr}.step-list{max-height:170px}.minor-upload{margin-left:0}}
+.laser-tilt-panel{margin:28px 0 8px;padding:20px 22px;border:1px solid #cbd8e1;background:#f7fafc;color:#1f3a53}
+.laser-tilt-panel h3{margin:0 0 8px;font-size:18px}
+.laser-tilt-panel p{margin:0 0 14px;line-height:1.45}
+.laser-tilt-panel .laser-tilt-alert{font-weight:700;color:#9c3e30}
+.laser-tilt-panel button{margin:0 0 14px}
+.laser-tilt-panel details{max-height:380px;overflow:auto}
+.laser-tilt-panel summary{cursor:pointer;font-weight:700;margin-bottom:10px}
+.laser-tilt-panel table{width:100%;border-collapse:collapse;font-size:13px}
+.laser-tilt-panel th,.laser-tilt-panel td{padding:7px 10px;border-bottom:1px solid #dce5eb;text-align:left}
+.laser-tilt-panel th{position:sticky;top:0;background:#eef4f7}
