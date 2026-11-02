@@ -8,9 +8,10 @@
   <meta name="description" content="Review a frame tube order, export a material list and cut list, and make dimensioned bent tube sheets.">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="step.css?v=11">
+  <link rel="stylesheet" href="tutorial.css?v=1">
 </head>
 <body>
-  <header class="topbar"><div class="brand"><span class="mark">F<span>·</span></span><span>FRAME <b>ORDER</b> STUDIO</span></div><div class="top-right"><span class="privacy">● Browser-local workspace</span><button id="reset" class="text-button">New order</button></div></header>
+  <header class="topbar"><div class="brand"><span class="mark">F<span>·</span></span><span>FRAME <b>ORDER</b> STUDIO</span></div><nav class="top-right tutorial-nav" aria-label="Main navigation"><a class="tutorial-link" href="tutorial.html">Tutorial</a><span class="privacy">● Browser-local workspace</span><button id="reset" class="text-button">New order</button></nav></header>
   <main>
     <section class="hero"><div><div class="eyebrow">FABRICATION WORKSPACE <span>/</span> TUBE FRAME ORDERS</div><h1>From frame data to<br><em>shop-ready paperwork.</em></h1><p>Build a tube set, check the cut list, and prepare individual bend sheets in one place.</p></div><div class="hero-card"><span>ORDER STATUS</span><strong id="heroCount">0</strong><small>tube items in workspace</small><div class="hero-rule"></div><p id="sourceLine">Start by importing a cut list or a frame STEP.</p></div></section>
     <section class="notice"><div class="notice-icon">i</div><div><strong>Browser-local frame analysis</strong><p>Import a multi-body STEP to split its bodies, detect tube profile, outside size and wall, identify bends, and create drawings. Download individual STEP files grouped by profile, size and wall, or export all original bodies with the isometric assembly. The STEP stays in your browser and is not uploaded. Exact 45° CAD corrections are available in the local server companion. <a href="https://vr3.ca/documents/SolidModeling.20230627.pdf" target="_blank" rel="noopener noreferrer">VR3 Solid Modeling guide</a>.</p></div></section>

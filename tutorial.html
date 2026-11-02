@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#12223a">
+  <title>Tutorial · Frame Order Studio</title>
+  <meta name="description" content="Learn what each Frame Order Studio button imports, changes, and exports.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="step.css?v=11">
+  <link rel="stylesheet" href="tutorial.css?v=1">
+</head>
+<body class="tutorial-page">
+  <header class="topbar">
+    <a class="brand brand-link" href="index.html"><span class="mark">F<span>·</span></span><span>FRAME <b>ORDER</b> STUDIO</span></a>
+    <nav class="top-right tutorial-nav" aria-label="Main navigation">
+      <a class="tutorial-link" href="index.html">Studio</a>
+      <a class="tutorial-link active" href="tutorial.html" aria-current="page">Tutorial</a>
+      <span class="privacy">● Browser-local workspace</span>
+    </nav>
+  </header>
+  <main class="tutorial-main">
+    <section class="tutorial-hero">
+      <div>
+        <div class="eyebrow">FRAME ORDER STUDIO <span>/</span> TUTORIAL</div>
+        <h1>Know what every button <em>makes.</em></h1>
+        <p>Start with a multi-body STEP or a cut list, review the tube rows, then choose the output that matches the job.</p>
+      </div>
+      <aside class="tutorial-callout"><strong>Your CAD stays on your device</strong><span>The hosted app analyzes STEP files in your browser. It does not upload them. The SLDPRT button only records a file name as a reference; it does not read SolidWorks geometry.</span></aside>
+    </section>
+
+    <section class="tutorial-section">
+      <div class="section-head"><div><span class="kicker">01 / WORKFLOW</span><h2>Three steps to an export</h2></div></div>
+      <div class="tutorial-steps">
+        <article><b class="step-number">1</b><h3>Load a source</h3><p>Use <strong>Generate from frame STEP</strong> for a multi-body STEP. Use <strong>Import cut list</strong> for CSV or saved project JSON.</p></article>
+        <article><b class="step-number">2</b><h3>Review the geometry</h3><p>Select a STEP body to see its drawing and detected profile. Use <strong>Add bodies to tube set</strong> to link the detected bodies into editable order rows.</p></article>
+        <article><b class="step-number">3</b><h3>Choose your deliverable</h3><p>Use a ZIP for STEP bodies, an SVG for a single drawing, or the print buttons to save sheets as PDF through your browser.</p></article>
+      </div>
+    </section>
+
+    <section class="tutorial-section">
+      <div class="section-head"><div><span class="kicker">02 / EXAMPLES</span><h2>Pictures from the supplied STEP</h2></div><span class="section-aside">Frame Send Out.STEP · 64 bodies</span></div>
+      <div class="tutorial-figures">
+        <figure class="tutorial-figure tutorial-figure-wide"><img src="tutorial/assembly-example.svg" alt="Fixed isometric view of the supplied frame STEP with 64 numbered body balloons and a tube profile list"><figcaption><strong>Fixed isometric assembly with balloons.</strong> Each bubble maps to a STEP body number. The same drawing is included in the all-bodies ZIP and can be downloaded on its own as an SVG.</figcaption></figure>
+        <figure class="tutorial-figure"><img src="tutorial/bent-tube-example.svg" alt="Three-view geometry drawing for bent tube 46 from the supplied STEP"><figcaption><strong>One bent tube, shown as a drawing sheet.</strong> This is body 46, detected as round 1.375 inch tube with a 0.049 inch wall. The geometry sheet shows projections and any bend geometry inferred from the STEP; confirm dimensions in CAD before manufacturing.</figcaption></figure>
+      </div>
+      <p class="tutorial-caution">These pictures illustrate this particular STEP file. The browser’s detected profile and bend labels are estimates from the imported geometry, not a manufacturing sign-off.</p>
+    </section>
+
+    <section class="tutorial-section button-guide">
+      <div class="section-head"><div><span class="kicker">03 / CONTROLS</span><h2>What each button outputs</h2></div></div>
+      <div class="guide-group">
+        <h3>Load and start</h3>
+        <dl>
+          <div><dt>Generate from frame STEP</dt><dd>Reads the selected multi-body STEP in the browser, separates its solids, analyzes tube profiles and bend flags, creates body drawings, and builds the assembly preview. Nothing is uploaded.</dd></div>
+          <div><dt>Import cut list</dt><dd>Loads a CSV or Frame Order Studio JSON into the tube table. A CSV needs item, length, and either outside size plus wall or a parseable description.</dd></div>
+          <div><dt>Download template</dt><dd>Saves <code>frame-cut-list-template.csv</code> with the supported column names and one example row.</dd></div>
+          <div><dt>Attach SLDPRT reference</dt><dd>Stores the selected part’s filename with the project. It does not parse SLDPRT geometry; import a STEP or a SolidWorks cut-list CSV for geometry or dimensions.</dd></div>
+          <div><dt>New order</dt><dd>After confirmation, clears the saved cut-list rows and part-file reference from this browser. Use <strong>Clear imported tubes</strong> separately to remove a loaded STEP and its linked rows.</dd></div>
+        </dl>
+      </div>
+      <div class="guide-group">
+        <h3>STEP body and assembly buttons</h3>
+        <dl>
+          <div><dt>Download all bodies + drawings ZIP</dt><dd>Creates a ZIP with one original STEP solid per file, a three-view SVG drawing for each body, the ballooned isometric assembly SVG, detected tube-spec CSV, and a README. Geometry is unchanged.</dd></div>
+          <div><dt>Download source alignment + cut audit ZIP</dt><dd>Creates an alignment and review handoff containing the original source STEP, individual source bodies, review-only drawings, cut-angle audit files, CSV, and CAD rework notes. It preserves the source geometry; it is not a corrected or approved manufacturing model.</dd></div>
+          <div><dt>Download STEP parts grouped by size + wall</dt><dd>Creates individual, unmodified STEP files in profile / outside-size / wall folders. Bodies missing specs go into <code>Needs-Spec-Review</code>; the ZIP also contains a folder index CSV.</dd></div>
+          <div><dt>Selected drawing SVG</dt><dd>Downloads the currently selected STEP body’s drawing as a vector SVG, named with its balloon number and detected tube type, size, and wall when available.</dd></div>
+          <div><dt>Print body sheets / PDF</dt><dd>Opens the browser print dialog with one drawing sheet per imported body. Choose “Save as PDF” in the print destination to make a PDF.</dd></div>
+          <div><dt>Clear imported tubes</dt><dd>Removes the loaded STEP, its body and assembly views, and rows linked to that STEP. Other cut-list rows remain.</dd></div>
+          <div><dt>Add bodies to tube set</dt><dd>Adds one editable tube row for each STEP body, carrying over detected profile, size, wall, bend flag, and body link where available. Cut length still needs entry or review.</dd></div>
+          <div><dt>Open selected tube sheet</dt><dd>Opens the tube-set editor for the selected body’s linked row.</dd></div>
+          <div><dt>Download assembly SVG</dt><dd>Saves only the fixed-isometric assembly drawing with numbered balloons and the part list as an SVG.</dd></div>
+          <div><dt>Assembly Print / PDF</dt><dd>Opens the landscape assembly sheet in the browser print dialog; select “Save as PDF” to make a PDF.</dd></div>
+        </dl>
+      </div>
+      <div class="guide-group">
+        <h3>Tube set and order buttons</h3>
+        <dl>
+          <div><dt>+ Add tube</dt><dd>Opens a blank tube form with a new item number and default round-tube fields. It does not add the row until you save it.</dd></div>
+          <div><dt>Save tube detail</dt><dd>Validates and saves the current item to this browser’s project data, then refreshes the table and drawing preview.</dd></div>
+          <div><dt>Save project JSON</dt><dd>Downloads <code>frame-order-project.json</code> with the saved rows and project metadata so the project can be imported later.</dd></div>
+          <div><dt>Download SVG drawing</dt><dd>Downloads the selected tube-set row’s planar centerline sheet as an SVG, including entered straight lengths, bend angles, centerline radii, and tube size / wall.</dd></div>
+          <div><dt>Tube Print / PDF</dt><dd>Opens one selected tube-set drawing in the browser print dialog. Use “Save as PDF” for a file.</dd></div>
+          <div><dt>Download BOM CSV</dt><dd>Saves <code>frame-material-list.csv</code> with item, quantity, profile, outside size, wall, approximate length, and bend count.</dd></div>
+          <div><dt>Print cut list / PDF</dt><dd>Opens the numbered cut-list sheet with quantity, tube size, reference length, and bend flag. Save it as PDF from the print dialog.</dd></div>
+          <div><dt>Print bend sheets / PDF</dt><dd>Opens sheets for saved rows that have valid bend legs, angles, and centerline radii. It reports an alert if no rows have complete bend data.</dd></div>
+        </dl>
+      </div>
+      <div class="tutorial-callout tutorial-callout-warn"><strong>Before sending files to a manufacturer</strong><span>Geometry-envelope lengths and automatically inferred bend details can be approximate. Review tube size, wall, bend angle and radius, cut length, and end cuts in CAD. The hosted audit ZIP is a review handoff and does not modify or certify the STEP.</span></div>
+    </section>
+
+    <section class="tutorial-footer-cta"><div><span class="kicker">READY TO START?</span><h2>Open the workspace and load a frame.</h2></div><a class="primary tutorial-cta" href="index.html">Go to Frame Order Studio ↗</a></section>
+  </main>
+  <footer><span>FRAME ORDER STUDIO</span><span>Prepared for tube-frame fabrication review</span></footer>
+</body>
+</html>
