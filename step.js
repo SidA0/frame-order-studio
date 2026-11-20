@@ -23,7 +23,6 @@ async function readStep(file){
     if(!cadBodies.length||cadParts.length!==cadBodies.length)throw Error('Body and STEP file counts differ. The export needs review.');
     if(typeof window.initializeNumberingAudit!=='function')throw Error('Numbering audit did not load. Refresh the site before exporting parts.');
     window.initializeNumberingAudit();
-    reconcileFrameSendOutNumbering();
     cadSelected=0;$('stepCount').textContent=`${cadBodies.length} ${cadBodies.length===1?'body':'bodies'}`;
     $('stepResults').hidden=false;renderCadBodies();
     stepStatus(`${cadBodies.length} bodies found. Review mirrored-side numbering before exporting STEP files and drawings.`);
@@ -52,7 +51,6 @@ async function buildStepPackage(includeLaserReview=false){
   if(cadSpecs.length)zip.file('detected-tube-specs.csv',csv([['balloon number','STEP body','export base name','profile','outside size in','wall in','bend flag','bend angles degrees','bend CLRs in','profile evidence','bend evidence'],...cadBodies.map((body,i)=>[bodyBalloonNumber(body),body.number,tubeFileBase(body),cadSpecs[i]?.type||'Unspecified',cadSpecs[i]?.od||'',cadSpecs[i]?.wall||'',cadSpecs[i]?.bendFlag||'Review',(cadSpecs[i]?.bends||[]).map(b=>b.angle).join('; '),(cadSpecs[i]?.bends||[]).map(b=>b.clr).join('; '),cadSpecs[i]?.specBasis||'',cadSpecs[i]?.bendBasis||''])]));
   zip.file('body-number-geometry-map.csv',csv([['balloon number','STEP solid id','source solid name','reader mesh index','bounds low XYZ in','bounds high XYZ in','individual STEP filename'],...cadBodies.map(body=>[bodyBalloonNumber(body),cadParts[body.number-1]?.solidId||'',body.name,body.ids[0],body.bounds.lo.map(v=>v.toFixed(5)).join('; '),body.bounds.hi.map(v=>v.toFixed(5)).join('; '),`${tubeFileBase(body)}.step`])]));
   zip.file('numbering-review.csv',csv(window.numberingReviewRows()));
-  if(isFrameSendOutPair())zip.file('numbering-correction.txt','Frame Send Out.STEP numbering correction: balloon/file 22 contains source STEP body 23 (Trim/Extend32[2], negative Y); balloon/file 23 contains source STEP body 22 (Trim/Extend32[1], positive Y). The STEP solid geometry and coordinates are preserved. Use body-number-geometry-map.csv to audit this mapping.\n');
   zip.file('README.txt',`${cadFilename}\n${cadBodies.length} individual STEP solids, three-view SVG drawings, and a numbered isometric assembly SVG.\n${includeLaserReview?'The folder "Tube laser reviewed parts" contains a corresponding numbered STEP for each body. Read tube-laser-review.csv: reviewed entries have two planar 45-degree ends; NEEDS-CAD-REVIEW entries retain their source geometry. All bevels are additive. Add copes and verify assembly fit before fabrication.\n':''}\nPart filenames begin with the balloon number and include the detected tube type, outside size, and wall. Each original STEP file contains one analytic solid with source geometry preserved. The largest overall axis is the baseline on each body sheet. Bend numbers B1, B2, etc. identify geometric bends on the body drawing; angles are inferred from STEP toroidal face boundaries and adjacent tube axes. All bend angles and centerline radii require CAD review before fabrication.\n\nReference: VR3 Solid Modeling guide (2023-06-27), https://vr3.ca/documents/SolidModeling.20230627.pdf. Keep balloon, BOM, and part numbers consistent.\n`);
   stepStatus('Compressing the STEP and drawing package…');
   cadPackage=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
@@ -83,19 +81,7 @@ async function downloadGroupedStepParts(){
   finally{button.disabled=false;button.textContent='Download STEP parts grouped by size + wall ↓'}
 }
 function resolvedTubeSpec(body){const row=associatedItem(body),detected=cadSpecs[body.number-1]||{};return{type:row?.type&&row.type!=='Unspecified'?row.type:detected.type||row?.type||'Unspecified',od:Number(row?.od)||Number(detected.od)||0,wall:Number(row?.wall)||Number(detected.wall)||0}}
-function isFrameSendOutPair(){
-  const a=cadBodies[21],b=cadBodies[22];
-  return cadSourceHash==='4ce2f913d0cf0fd3d0da5b6b62ff03b35bf843417168109af3e70faebb2e1a08'&&cadBodies.length===64&&a?.name==='Trim/Extend32[1]'&&b?.name==='Trim/Extend32[2]'&&
-    a.bounds.lo[1]>8&&b.bounds.hi[1]<-8&&Math.abs(a.bounds.lo[0]-b.bounds.lo[0])<.01&&
-    Math.abs(a.bounds.hi[2]-b.bounds.hi[2])<.01;
-}
 function sourceBalloonNumber(body){return cadBalloonOverrides.get(body.number)??body.number}
-function reconcileFrameSendOutNumbering(){
-  if(!isFrameSendOutPair())return;
-  const a=state.rows.find(row=>row.cadBody===22&&row.cadFile===cadFilename);
-  const b=state.rows.find(row=>row.cadBody===23&&row.cadFile===cadFilename);
-  if(a?.item===22&&b?.item===23){a.item=23;b.item=22;if(selected===22)selected=23;else if(selected===23)selected=22;persist();render()}
-}
 function bodyBalloonNumber(body){
   if(cadBalloonOverrides.has(body.number))return cadBalloonOverrides.get(body.number);
   const linked=associatedItem(body);

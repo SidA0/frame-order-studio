@@ -48,11 +48,6 @@
   });
   window.initializeNumberingAudit=()=>{
     pairs=NumberingCore.mirroredPairs(cadBodies);confirmed=new Set();cadBalloonOverrides.clear();
-    if(isFrameSendOutPair()){
-      const pair=pairs.find(item=>item.a===22&&item.b===23);
-      if(!pair)throw Error('The known 22/23 mirrored pair was not detected. Numbered export is blocked.');
-      cadBalloonOverrides.set(22,23);cadBalloonOverrides.set(23,22);confirmed.add(key(pair));
-    }
     renderAudit();
   };
   window.clearNumberingAudit=()=>{pairs=[];confirmed.clear();section.hidden=true};
