@@ -2,6 +2,8 @@
 
 A browser based tube frame workspace for importing cut lists and multi-body STEP files, reviewing detected tube profiles and wall thicknesses, producing individual drawings, and exporting grouped STEP bodies with a fixed isometric assembly sheet.
 
+The assembly sheet views the source CAD from +X, +Y, +Z. Its camera rotation changes only the drawing; exported STEP coordinates and numbered solids are preserved.
+
 ## Use the hosted version
 
 Open [Frame Order Studio](https://sida0.github.io/frame-order-studio/) or its [button-by-button tutorial](https://sida0.github.io/frame-order-studio/tutorial.html). STEP files are processed in the browser and are not uploaded to the site.
