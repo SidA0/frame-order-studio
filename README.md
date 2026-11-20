@@ -2,7 +2,11 @@
 
 A browser based tube frame workspace for importing cut lists and multi-body STEP files, reviewing detected tube profiles and wall thicknesses, producing individual drawings, and exporting grouped STEP bodies with a fixed isometric assembly sheet.
 
-The assembly sheet views the source CAD from +X, +Y, +Z. Its camera rotation changes only the drawing; exported STEP coordinates and numbered solids are preserved.
+The assembly sheet views the source CAD from +X, +Y, +Z. Its camera rotation changes only the drawing; exported STEP coordinates and solids are preserved.
+
+For the supplied `Frame Send Out.STEP`, item 22 is source body 23 and item 23 is source body 22. The assembly, exported filenames, individual drawings, and `body-number-geometry-map.csv` use the same corrected item numbers; source solid geometry remains in its original coordinates.
+
+The STEP contains 27 mirrored body pairs. The known 22/23 correction is prefilled for this exact source file. The other 26 pairs require explicit side-by-side numbering review in the website before any numbered export is enabled. Each ZIP includes `numbering-review.csv`.
 
 ## Use the hosted version
 

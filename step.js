@@ -1,16 +1,16 @@
-let cadBodies=[];let cadMeshes=[];let cadSelected=0;let cadFilename='';let cadParts=[];let cadSpecs=[];let cadPackage=null;let cadPackageHasLaserReview=false;let cadSourceFile=null;
+let cadBodies=[];let cadMeshes=[];let cadSelected=0;let cadFilename='';let cadParts=[];let cadSpecs=[];let cadPackage=null;let cadPackageHasLaserReview=false;let cadSourceFile=null;let cadSourceHash='';const cadBalloonOverrides=new Map();
 const stepStatus=(message,error=false)=>{const el=$('stepStatus');el.textContent=message;el.classList.toggle('error',error)};
 function collectBodies(root,meshes,parts=[]){const found=[];function visit(node,path){const label=String(node?.name||'').trim();const here=label?[...path,label]:path;if(node?.meshes?.length){const ids=node.meshes.filter(i=>meshes[i]?.attributes?.position?.array?.length&&meshes[i]?.index?.array?.length);for(const id of ids)found.push({name:parts[id]?.solidName||meshes[id]?.name||`${here.join(' / ')||'Body'} ${id+1}`,ids:[id]})}for(const child of node?.children||[])visit(child,here)}visit(root,[]);if(!found.length)meshes.forEach((m,i)=>{if(m?.attributes?.position?.array?.length&&m?.index?.array?.length)found.push({name:parts[i]?.solidName||m.name||`Body ${i+1}`,ids:[i]})});return found.map((b,i)=>({...b,number:i+1,bounds:bodyBounds(b,meshes)}))}
 function bodyBounds(body,meshes){const lo=[Infinity,Infinity,Infinity],hi=[-Infinity,-Infinity,-Infinity];let vertices=0,triangles=0;for(const id of body.ids){const m=meshes[id],a=m.attributes.position.array;vertices+=a.length/3;triangles+=m.index.array.length/3;for(let i=0;i<a.length;i+=3)for(let k=0;k<3;k++){lo[k]=Math.min(lo[k],a[i+k]);hi[k]=Math.max(hi[k],a[i+k])}}return {lo,hi,size:hi.map((x,i)=>x-lo[i]),vertices,triangles}}
 async function readStep(file){
   if(!file)return;
   if(file.size>200*1024*1024)return stepStatus('This STEP is over 200 MB. Export a smaller body set or split the model.',true);
-  cadBodies=[];cadMeshes=[];cadParts=[];cadSpecs=[];cadPackage=null;window.currentLaserAuditRows=null;cadFilename=file.name;cadSourceFile=file;
+  cadBodies=[];cadMeshes=[];cadParts=[];cadSpecs=[];cadPackage=null;cadSourceHash='';cadBalloonOverrides.clear();window.currentLaserAuditRows=null;cadFilename=file.name;cadSourceFile=file;
   $('stepName').textContent=file.name;$('stepResults').hidden=true;
   stepStatus(`Reading ${file.name} and separating solid bodies…`);
   let worker;
   try{
-    const buffer=await file.arrayBuffer();worker=new Worker('step-worker.js?v=9');
+    const buffer=await file.arrayBuffer();cadSourceHash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',buffer)),v=>v.toString(16).padStart(2,'0')).join('');worker=new Worker('step-worker.js?v=9');
     const answer=await new Promise((resolve,reject)=>{worker.onmessage=e=>resolve(e.data);worker.onerror=e=>reject(new Error(e.message||'CAD importer failed'));worker.postMessage(buffer,[buffer])});
     if(!answer.ok)throw Error(answer.error);
     const result=answer.result;
@@ -21,18 +21,21 @@ async function readStep(file){
     if(ids.length!==cadParts.length||new Set(ids).size!==ids.length)throw Error('The STEP body-to-export mapping is incomplete. No numbered drawing was generated.');
     cadBodies=cadParts.map((part,i)=>({number:i+1,name:part.solidName,ids:[ids[i]],bounds:bodyBounds({ids:[ids[i]]},cadMeshes)}));
     if(!cadBodies.length||cadParts.length!==cadBodies.length)throw Error('Body and STEP file counts differ. The export needs review.');
+    if(typeof window.initializeNumberingAudit!=='function')throw Error('Numbering audit did not load. Refresh the site before exporting parts.');
+    window.initializeNumberingAudit();
+    reconcileFrameSendOutNumbering();
     cadSelected=0;$('stepCount').textContent=`${cadBodies.length} ${cadBodies.length===1?'body':'bodies'}`;
     $('stepResults').hidden=false;renderCadBodies();
-    stepStatus(`${cadBodies.length} bodies found. Generating individual STEP files and drawing sheets…`);
-    await buildStepPackage();
+    stepStatus(`${cadBodies.length} bodies found. Review mirrored-side numbering before exporting STEP files and drawings.`);
     if(typeof window.loadLaserAudit==='function')await window.loadLaserAudit();
     if(typeof window.loadBevelReviewSummary==='function')await window.loadBevelReviewSummary();
-    stepStatus(`${cadBodies.length} bodies are ready. ${cadSpecs.filter(s=>s.type!=='Unspecified').length} tube profiles detected${answer.specError?` (${answer.specError})`:''}. Download all bodies + drawings ZIP, or sort STEP files by profile, size and wall.`);
+    stepStatus(`${cadBodies.length} bodies found. ${cadSpecs.filter(s=>s.type!=='Unspecified').length} tube profiles detected${answer.specError?` (${answer.specError})`:''}. Confirm the mirrored tube pairs below before exporting numbered files.`);
     $('stepResults').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(error){cadBodies=[];cadMeshes=[];cadParts=[];cadSpecs=[];cadPackage=null;$('stepResults').hidden=true;stepStatus(`Could not generate this frame package: ${error.message}`,true)}
   finally{worker?.terminate()}
 }
 async function buildStepPackage(includeLaserReview=false){
+  if(!window.ensureNumberingAudit?.())throw Error('Review mirrored tube numbering before exporting.');
   if(typeof JSZip==='undefined')throw Error('ZIP packaging library did not load.');
   const zip=new JSZip(),steps=zip.folder('individual-step'),drawings=zip.folder('drawings-svg');
   for(let i=0;i<cadBodies.length;i++){
@@ -48,6 +51,8 @@ async function buildStepPackage(includeLaserReview=false){
   }
   if(cadSpecs.length)zip.file('detected-tube-specs.csv',csv([['balloon number','STEP body','export base name','profile','outside size in','wall in','bend flag','bend angles degrees','bend CLRs in','profile evidence','bend evidence'],...cadBodies.map((body,i)=>[bodyBalloonNumber(body),body.number,tubeFileBase(body),cadSpecs[i]?.type||'Unspecified',cadSpecs[i]?.od||'',cadSpecs[i]?.wall||'',cadSpecs[i]?.bendFlag||'Review',(cadSpecs[i]?.bends||[]).map(b=>b.angle).join('; '),(cadSpecs[i]?.bends||[]).map(b=>b.clr).join('; '),cadSpecs[i]?.specBasis||'',cadSpecs[i]?.bendBasis||''])]));
   zip.file('body-number-geometry-map.csv',csv([['balloon number','STEP solid id','source solid name','reader mesh index','bounds low XYZ in','bounds high XYZ in','individual STEP filename'],...cadBodies.map(body=>[bodyBalloonNumber(body),cadParts[body.number-1]?.solidId||'',body.name,body.ids[0],body.bounds.lo.map(v=>v.toFixed(5)).join('; '),body.bounds.hi.map(v=>v.toFixed(5)).join('; '),`${tubeFileBase(body)}.step`])]));
+  zip.file('numbering-review.csv',csv(window.numberingReviewRows()));
+  if(isFrameSendOutPair())zip.file('numbering-correction.txt','Frame Send Out.STEP numbering correction: balloon/file 22 contains source STEP body 23 (Trim/Extend32[2], negative Y); balloon/file 23 contains source STEP body 22 (Trim/Extend32[1], positive Y). The STEP solid geometry and coordinates are preserved. Use body-number-geometry-map.csv to audit this mapping.\n');
   zip.file('README.txt',`${cadFilename}\n${cadBodies.length} individual STEP solids, three-view SVG drawings, and a numbered isometric assembly SVG.\n${includeLaserReview?'The folder "Tube laser reviewed parts" contains a corresponding numbered STEP for each body. Read tube-laser-review.csv: reviewed entries have two planar 45-degree ends; NEEDS-CAD-REVIEW entries retain their source geometry. All bevels are additive. Add copes and verify assembly fit before fabrication.\n':''}\nPart filenames begin with the balloon number and include the detected tube type, outside size, and wall. Each original STEP file contains one analytic solid with source geometry preserved. The largest overall axis is the baseline on each body sheet. Bend numbers B1, B2, etc. identify geometric bends on the body drawing; angles are inferred from STEP toroidal face boundaries and adjacent tube axes. All bend angles and centerline radii require CAD review before fabrication.\n\nReference: VR3 Solid Modeling guide (2023-06-27), https://vr3.ca/documents/SolidModeling.20230627.pdf. Keep balloon, BOM, and part numbers consistent.\n`);
   stepStatus('Compressing the STEP and drawing package…');
   cadPackage=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
@@ -55,6 +60,7 @@ async function buildStepPackage(includeLaserReview=false){
 }
 function downloadStepPackage(){if(!cadPackage)return;const a=document.createElement('a');a.href=URL.createObjectURL(cadPackage);a.download=`${cadFilename.replace(/\.(step|stp)$/i,'')}-${cadPackageHasLaserReview?'tube-laser-package':'individual-bodies-and-drawings'}.zip`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000)}
 async function downloadGroupedStepParts(){
+  if(!window.ensureNumberingAudit?.())return;
   if(!cadBodies.length||cadParts.length!==cadBodies.length)return stepStatus('Load a multi-body STEP first.',true);
   const button=$('groupedStepDownload');button.disabled=true;
   try{
@@ -68,6 +74,7 @@ async function downloadGroupedStepParts(){
       rows.push([balloon,body.number,body.name,spec.type||'Unspecified',spec.od||'',spec.wall||'',folder]);
     }
     zip.file('tube-spec-folder-index.csv',csv([['balloon number','STEP body number','source body name','tube profile','outside size in','wall thickness in','folder'],...rows]));
+    zip.file('numbering-review.csv',csv(window.numberingReviewRows()));
     zip.file('README.txt',`${cadFilename}\n\n${cadBodies.length} individual STEP solids sorted into folders by detected tube profile, outside size, and wall thickness. Units are inches. All files retain their original STEP body geometry.\n\n${identified} bodies have a detected profile, outside size, and wall thickness. ${cadBodies.length-identified} bodies are included in Needs-Spec-Review because one or more required tube specifications could not be determined. No body was omitted. Review tube-spec-folder-index.csv and confirm every classification in CAD before fabrication.\n`);
     button.textContent='Preparing grouped STEP files…';
     const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`${cadFilename.replace(/\.(step|stp)$/i,'')}-parts-by-tube-size-and-wall.zip`;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),60000);
@@ -76,9 +83,26 @@ async function downloadGroupedStepParts(){
   finally{button.disabled=false;button.textContent='Download STEP parts grouped by size + wall ↓'}
 }
 function resolvedTubeSpec(body){const row=associatedItem(body),detected=cadSpecs[body.number-1]||{};return{type:row?.type&&row.type!=='Unspecified'?row.type:detected.type||row?.type||'Unspecified',od:Number(row?.od)||Number(detected.od)||0,wall:Number(row?.wall)||Number(detected.wall)||0}}
-function bodyBalloonNumber(body){return associatedItem(body)?.item??body.number}
+function isFrameSendOutPair(){
+  const a=cadBodies[21],b=cadBodies[22];
+  return cadSourceHash==='4ce2f913d0cf0fd3d0da5b6b62ff03b35bf843417168109af3e70faebb2e1a08'&&cadBodies.length===64&&a?.name==='Trim/Extend32[1]'&&b?.name==='Trim/Extend32[2]'&&
+    a.bounds.lo[1]>8&&b.bounds.hi[1]<-8&&Math.abs(a.bounds.lo[0]-b.bounds.lo[0])<.01&&
+    Math.abs(a.bounds.hi[2]-b.bounds.hi[2])<.01;
+}
+function sourceBalloonNumber(body){return cadBalloonOverrides.get(body.number)??body.number}
+function reconcileFrameSendOutNumbering(){
+  if(!isFrameSendOutPair())return;
+  const a=state.rows.find(row=>row.cadBody===22&&row.cadFile===cadFilename);
+  const b=state.rows.find(row=>row.cadBody===23&&row.cadFile===cadFilename);
+  if(a?.item===22&&b?.item===23){a.item=23;b.item=22;if(selected===22)selected=23;else if(selected===23)selected=22;persist();render()}
+}
+function bodyBalloonNumber(body){
+  if(cadBalloonOverrides.has(body.number))return cadBalloonOverrides.get(body.number);
+  const linked=associatedItem(body);
+  return linked&&linked.item!==body.number?linked.item:sourceBalloonNumber(body);
+}
 function tubeFileBase(body){const spec=cadSpecs[body.number-1]||{},row=associatedItem(body),type=row?.type||spec.type||'Unspecified',od=row?.od||spec.od,wall=row?.wall||spec.wall,number=String(bodyBalloonNumber(body)).padStart(3,'0');return `${number}_${type}_${od&&wall?`${fmt(od,3)}x${fmt(wall,3)}`:'specs-pending'}`.replace(/[^A-Za-z0-9_.-]/g,'_')}
-function renderCadBodies(){const list=$('stepList');list.replaceChildren();cadBodies.forEach((b,i)=>{const button=document.createElement('button');button.className=i===cadSelected?'active':'';const title=document.createElement('strong'),sub=document.createElement('small');title.textContent=b.name;sub.textContent=`${b.bounds.triangles.toLocaleString()} triangles · ${b.bounds.size.map(v=>fmt(v,2)).join(' × ')} in`;button.append(title,sub);button.onclick=()=>{cadSelected=i;renderCadBodies()};list.append(button)});$('stepPreview').innerHTML=stepSvg(cadBodies[cadSelected])}
+function renderCadBodies(){const list=$('stepList');list.replaceChildren();cadBodies.forEach((b,i)=>{const button=document.createElement('button');button.className=i===cadSelected?'active':'';const title=document.createElement('strong'),sub=document.createElement('small');title.textContent=`Item ${bodyBalloonNumber(b)} · ${b.name}`;sub.textContent=`${b.bounds.triangles.toLocaleString()} triangles · ${b.bounds.size.map(v=>fmt(v,2)).join(' × ')} in`;button.append(title,sub);button.onclick=()=>{cadSelected=i;renderCadBodies()};list.append(button)});$('stepPreview').innerHTML=stepSvg(cadBodies[cadSelected])}
 function projectionImage(body,axes,width=520,height=220){const canvas=document.createElement('canvas');canvas.width=width*2;canvas.height=height*2;const ctx=canvas.getContext('2d');ctx.scale(2,2);const lo=body.bounds.lo,hi=body.bounds.hi;const sx=Math.max(hi[axes[0]]-lo[axes[0]],1e-6),sy=Math.max(hi[axes[1]]-lo[axes[1]],1e-6),scale=Math.min((width-44)/sx,(height-44)/sy);const dw=sx*scale,dh=sy*scale,offX=(width-dw)/2,offY=(height-dh)/2;ctx.fillStyle='#29465d';for(const id of body.ids){const mesh=cadMeshes[id],a=mesh.attributes.position.array,idx=mesh.index.array;for(let i=0;i<idx.length;i+=3){ctx.beginPath();for(let j=0;j<3;j++){const n=idx[i+j]*3,x=offX+(a[n+axes[0]]-lo[axes[0]])*scale,y=height-offY-(a[n+axes[1]]-lo[axes[1]])*scale;if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.closePath();ctx.fill()}}return canvas.toDataURL('image/png')}
 function viewSvg(body,axes,x,y,w,h,title){const img=projectionImage(body,axes,w-24,h-54),dims=body.bounds.size;return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fbfcfd" stroke="#cdd8e1"/><text x="${x+14}" y="${y+22}" class="viewname">${title}</text><image href="${img}" x="${x+12}" y="${y+31}" width="${w-24}" height="${h-54}" preserveAspectRatio="xMidYMid meet"/><line x1="${x+30}" y1="${y+h-14}" x2="${x+w-30}" y2="${y+h-14}" stroke="#7c93a7"/><text x="${x+w/2}" y="${y+h-17}" text-anchor="middle" class="dim">${fmt(dims[axes[0]],3)}&quot; ${'XYZ'[axes[0]]}</text><text x="${x+w-16}" y="${y+22}" text-anchor="end" class="dim">${fmt(dims[axes[1]],3)}&quot; ${'XYZ'[axes[1]]}</text></g>`}
 function associatedItem(body){const m=body.name.match(/^(?:item[- ]?)?(\d{1,4})$/i);return m?state.rows.find(r=>r.item===Number(m[1])):null}
@@ -102,7 +126,7 @@ function clearImportedTubes(){
   const sourceName=cadFilename,removed=cadBodies.length,linked=state.rows.filter(row=>row.cadFile===sourceName).length;
   state.rows=state.rows.filter(row=>row.cadFile!==sourceName);
   if(sourceName&&state.source.includes(`STEP bodies linked from ${sourceName}`))state.source='';
-  cadBodies=[];cadMeshes=[];cadParts=[];cadSpecs=[];cadSelected=0;cadFilename='';cadSourceFile=null;cadPackage=null;cadPackageHasLaserReview=false;
+  cadBodies=[];cadMeshes=[];cadParts=[];cadSpecs=[];cadSelected=0;cadFilename='';cadSourceFile=null;cadPackage=null;cadPackageHasLaserReview=false;cadSourceHash='';cadBalloonOverrides.clear();window.clearNumberingAudit?.();
   window.currentLaserAuditRows=null;window.lastLaserReviewSummary=null;
   $('stepFile').value='';$('stepName').textContent='One upload makes individual STEP files and drawing sheets';$('stepResults').hidden=true;
   const assembly=$('assemblySection');if(assembly){assembly.hidden=true;$('assemblyView')?.replaceChildren()}

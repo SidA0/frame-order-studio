@@ -16,6 +16,7 @@ function laserCutReviewRows(){
 
 async function downloadLaserCutReview(){
   if(!cadBodies.length)return;
+  if(!window.ensureNumberingAudit?.())throw Error('Review mirrored tube numbering before exporting.');
   if(typeof JSZip==='undefined')return stepStatus('ZIP library did not load.',true);
   const zip=new JSZip(),source=zip.folder('SOURCE-STEP-UNMODIFIED'),drawings=zip.folder('DRAWINGS-REVIEW-ONLY');
   if(cadSourceFile)zip.file('ASSEMBLY-SOURCE-UNMODIFIED.step',await cadSourceFile.arrayBuffer());
@@ -29,6 +30,7 @@ async function downloadLaserCutReview(){
     if(i%8===0){stepStatus(`Preparing laser-cut review ${i+1} / ${cadBodies.length}…`);await new Promise(requestAnimationFrame)}
   }
   zip.file('laser-cut-review.csv',csv([['balloon number','STEP body','source body name','export base name','tube type','OD in','wall in','max planar-face tilt candidate deg','45 degree screen','cut-wall straightness','profile review','required action'],...rows]));
+  zip.file('numbering-review.csv',csv(window.numberingReviewRows()));
   if(window.currentLaserAuditRows)zip.file('laser-tilt-45-audit.json',JSON.stringify(window.currentLaserAuditRows,null,2));
   zip.file('CAD-REWORK-REQUIREMENTS.txt',`${cadFilename}\n\nMANUFACTURER DFM REVIEW HANDOFF - NOT A CORRECTED CAD RELEASE\n\nASSEMBLY-SOURCE-UNMODIFIED.step contains all bodies in their original positions for alignment. Individual STEP files retain the same coordinates and balloon numbers.\n\n1. Maximum laser-head tilt is 45 degrees from a perpendicular through-wall cut. Rework any cope location exceeding this limit.\n2. Each local cut through the tube wall must be a straight line. A curved cut path around the tube is allowed; a curved profile through the wall thickness is not.\n3. Revise source CAD cope features, regenerate the solids, and verify tube fit, end trims, wall, bend geometry, and balloon numbers.\n4. The CSV lists planar-face tilt candidates only. It cannot prove that all local cope surfaces meet either requirement. A blank or low candidate angle is not a pass.\n5. All ${cadBodies.length} source bodies are retained. No original STEP geometry has been modified in this handoff.\n\nDo not release SOURCE-STEP-UNMODIFIED for cutting as DFM-approved geometry.\n`);
   const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
