@@ -45,8 +45,8 @@
   function layout(items, rect, options = {}) {
     const radius = options.radius ?? 11;
     const cx = rect.x + rect.w / 2, cy = rect.y + rect.h / 2;
-    const directions = Array.from({ length: 24 }, (_, i) => i * Math.PI / 12);
-    const lengths = [30, 38, 48, 60, 76, 94, 116, 142, 172, 210, 255, 310, 370];
+    const directions = Array.from({ length: 36 }, (_, i) => i * Math.PI / 18);
+    const lengths = [48, 70, 95, 125, 160, 205, 255, 315, 380, 450, 530, 620, 720];
     let best = [];
     for (let attempt = 0; attempt < 8; attempt++) {
       const ordered = [...items].sort((a, b) => {
@@ -65,9 +65,10 @@
           for (const length of lengths) {
             for (const angle of directions) {
               const balloon = [anchor[0] + length * Math.cos(angle), anchor[1] + length * Math.sin(angle)];
+              if (options.requireOutside && insideConvex(balloon, options.avoidPolygon || [])) continue;
               if (!valid(anchor, balloon, placed, rect, radius)) continue;
               const deviation = Math.abs(Math.atan2(Math.sin(angle - outward), Math.cos(angle - outward)));
-              const score = length + deviation * 11 + dist(anchor, item.center) * .07 + (insideConvex(balloon, options.avoidPolygon || []) ? 110 : 0);
+              const score = length + deviation * 11 + dist(anchor, item.center) * .07 + (insideConvex(balloon, options.avoidPolygon || []) ? 420 : 0);
               if (score < bestScore) { bestScore = score; choice = { ...item, anchor, balloon }; }
             }
             if (choice && bestScore < length + 15) break;
@@ -78,6 +79,22 @@
       }
       if (placed.length > best.length) best = placed;
       if (placed.length === items.length) return { callouts: placed, complete: true };
+    }
+    if(options.requireOutside){
+      const placed=[...best],remaining=items.filter(item=>!placed.some(entry=>entry.number===item.number));
+      for(const item of remaining){
+        let choice=null,score=Infinity;
+        for(const anchor of item.anchors||[item.center])for(const length of lengths)for(const angle of directions){
+          const balloon=[anchor[0]+length*Math.cos(angle),anchor[1]+length*Math.sin(angle)];
+          if(!valid(anchor,balloon,placed,rect,radius))continue;
+          const candidateScore=length+(insideConvex(balloon,options.avoidPolygon||[])?1000:0);
+          if(candidateScore<score){score=candidateScore;choice={...item,anchor,balloon}}
+        }
+        if(!choice)break;
+        placed.push(choice);
+      }
+      if(placed.length===items.length)return {callouts:placed,complete:true,insideFallback:placed.length-best.length};
+      return layout(items,rect,{...options,requireOutside:false});
     }
     return { callouts: best, complete: false };
   }

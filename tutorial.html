@@ -32,7 +32,7 @@
     <section class="tutorial-section">
       <div class="section-head"><div><span class="kicker">01 / WORKFLOW</span><h2>Three steps to an export</h2></div></div>
       <div class="tutorial-steps">
-        <article><b class="step-number">1</b><h3>Load a source</h3><p>Use <strong>Generate from frame STEP</strong> for a multi-body STEP. Use <strong>Import cut list</strong> for CSV or saved project JSON.</p></article>
+        <article><b class="step-number">1</b><h3>Load a source</h3><p>Use <strong>Generate from frame STEP</strong> for a multi-body STEP, <strong>Review sent-out ZIP</strong> to inspect an earlier package, or <strong>Import cut list</strong> for CSV or saved project JSON.</p></article>
         <article><b class="step-number">2</b><h3>Review the geometry</h3><p>Select a STEP body to see its drawing and detected profile. Use <strong>Add bodies to tube set</strong> to link the detected bodies into editable order rows.</p></article>
         <article><b class="step-number">3</b><h3>Choose your deliverable</h3><p>Use a ZIP for STEP bodies, an SVG for a single drawing, or the print buttons to save sheets as PDF through your browser.</p></article>
       </div>
@@ -53,6 +53,7 @@
         <h3>Load and start</h3>
         <dl>
           <div><dt>Generate from frame STEP</dt><dd>Reads the selected multi-body STEP in the browser, separates its solids, analyzes tube profiles and bend flags, creates body drawings, and builds the assembly preview. Nothing is uploaded.</dd></div>
+          <div><dt>Review sent-out ZIP</dt><dd>Opens an earlier package locally and lists numbered STEP parts, detected tube specs, reviewed parts, and SVG sheets. It displays the assembly SVG exactly as it was sent. It does not change the files or silently replace the original drawing.</dd></div>
           <div><dt>Import cut list</dt><dd>Loads a CSV or Frame Order Studio JSON into the tube table. A CSV needs item, length, and either outside size plus wall or a parseable description.</dd></div>
           <div><dt>Download template</dt><dd>Saves <code>frame-cut-list-template.csv</code> with the supported column names and one example row.</dd></div>
           <div><dt>Attach SLDPRT reference</dt><dd>Stores the selected part’s filename with the project. It does not parse SLDPRT geometry; import a STEP or a SolidWorks cut-list CSV for geometry or dimensions.</dd></div>
@@ -62,7 +63,7 @@
       <div class="guide-group">
         <h3>STEP body and assembly buttons</h3>
         <dl>
-          <div><dt>Download all bodies + drawings ZIP</dt><dd>Creates a ZIP with one original STEP solid per file, a three-view SVG drawing for each body, the ballooned isometric assembly SVG, detected tube-spec CSV, and a README. Geometry is unchanged.</dd></div>
+          <div><dt>Download all bodies + drawings ZIP</dt><dd>Creates a ZIP with one original STEP solid per file, a three-view SVG drawing for each body, the ballooned isometric assembly SVG, detected tube-spec CSV, a body-number geometry map, and a README. Geometry is unchanged. Each balloon is matched to its exported STEP solid by geometry.</dd></div>
           <div><dt>Download source alignment + cut audit ZIP</dt><dd>Creates an alignment and review handoff containing the original source STEP, individual source bodies, review-only drawings, cut-angle audit files, CSV, and CAD rework notes. It preserves the source geometry; it is not a corrected or approved manufacturing model.</dd></div>
           <div><dt>Download STEP parts grouped by size + wall</dt><dd>Creates individual, unmodified STEP files in profile / outside-size / wall folders. Bodies missing specs go into <code>Needs-Spec-Review</code>; the ZIP also contains a folder index CSV.</dd></div>
           <div><dt>Selected drawing SVG</dt><dd>Downloads the currently selected STEP body’s drawing as a vector SVG, named with its balloon number and detected tube type, size, and wall when available.</dd></div>
@@ -70,7 +71,7 @@
           <div><dt>Clear imported tubes</dt><dd>Removes the loaded STEP, its body and assembly views, and rows linked to that STEP. Other cut-list rows remain.</dd></div>
           <div><dt>Add bodies to tube set</dt><dd>Adds one editable tube row for each STEP body, carrying over detected profile, size, wall, bend flag, and body link where available. Cut length still needs entry or review.</dd></div>
           <div><dt>Open selected tube sheet</dt><dd>Opens the tube-set editor for the selected body’s linked row.</dd></div>
-          <div><dt>Download assembly SVG</dt><dd>Saves only the fixed-isometric assembly drawing with numbered balloons and the part list as an SVG.</dd></div>
+          <div><dt>Download assembly SVG</dt><dd>Saves the fixed-isometric assembly drawing with numbered color-coded tubes and balloons. Leader anchors are placed on tube surfaces away from joints; the layout rejects crossing leaders and overlapping bubbles.</dd></div>
           <div><dt>Assembly Print / PDF</dt><dd>Opens the landscape assembly sheet in the browser print dialog; select “Save as PDF” to make a PDF.</dd></div>
         </dl>
       </div>

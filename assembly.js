@@ -8,7 +8,7 @@ cadActions.innerHTML='<button id="cadToTubeSet" class="primary">Add bodies to tu
 $('stepResults').append(cadActions);
 const assemblySection=document.createElement('section');
 assemblySection.id='assemblySection';assemblySection.className='assembly-section';assemblySection.hidden=true;
-assemblySection.innerHTML='<div class="section-head"><div><span class="kicker">03 / ASSEMBLY</span><h2>Isometric frame assembly</h2></div><div class="head-actions"><button id="assemblyDownload" class="primary">Download assembly SVG ↓</button><button id="assemblyPrint" class="secondary">Print / PDF ↗</button></div></div><p class="step-intro">Fixed isometric view. Balloon leaders are placed at different lengths and positions to avoid crossing. Select a bubble to open its tube sheet.</p><div id="assemblyView" class="assembly-view" aria-label="Isometric frame assembly with numbered noncrossing callouts"></div><p class="small-note">Assembly positions come from the STEP coordinates. Tube specifications and bend details require review.</p>';
+assemblySection.innerHTML='<div class="section-head"><div><span class="kicker">03 / ASSEMBLY</span><h2>Isometric frame assembly</h2></div><div class="head-actions"><button id="assemblyDownload" class="primary">Download assembly SVG ↓</button><button id="assemblyPrint" class="secondary">Print / PDF ↗</button></div></div><p class="step-intro">Fixed isometric view. Colored tubes and their balloons share a number. Leader anchors sit on each tube away from its joints; balloons stay clear of the frame. Select a bubble to open its tube sheet.</p><div id="assemblyView" class="assembly-view" aria-label="Isometric frame assembly with numbered noncrossing callouts"></div><p class="small-note">Assembly positions come from the STEP coordinates. Tube specifications and bend details require review.</p>';
 $('stepResults').after(assemblySection);
 const unknownProfile=document.createElement('option');unknownProfile.value='Unspecified';unknownProfile.textContent='Choose profile';$('fType').prepend(unknownProfile);
 const bendField=document.createElement('label');bendField.innerHTML='Bend flag <select id="fBendFlag"><option>Review</option><option>Straight</option><option>Bent</option></select>';$('fType').closest('.field-grid').append(bendField);
@@ -51,24 +51,51 @@ $('stepPackage').onclick=async()=>{if(!cadBodies.length)return;const button=$('s
 
 const assemblyView=$('assemblyView');
 const round=v=>Number(v).toFixed(1);
+const tubeColor=number=>`hsl(${(Number(number)*137.508)%360} 58% 38%)`;
+function tubeSurfaceAnchors(body,project){
+  const midpoint=body.bounds.lo.map((value,k)=>(value+body.bounds.hi[k])/2);
+  const axis=body.bounds.size.indexOf(Math.max(...body.bounds.size));
+  const candidates=[];
+  for(const id of body.ids){
+    const mesh=cadMeshes[id],a=mesh.attributes.position.array,ix=mesh.index.array;
+    const stride=Math.max(1,Math.floor(ix.length/3/1800));
+    for(let i=0;i<ix.length/3;i+=stride){
+      const p=[0,0,0];for(let j=0;j<3;j++){const offset=ix[i*3+j]*3;for(let k=0;k<3;k++)p[k]+=a[offset+k]/3}
+      const t=(p[axis]-body.bounds.lo[axis])/(body.bounds.size[axis]||1);
+      if(t>.18&&t<.82)candidates.push({p,t,offset:Math.hypot(...p.map((v,k)=>v-midpoint[k]))});
+    }
+  }
+  if(!candidates.length)return [project(midpoint).slice(0,2)];
+  const anchors=[];
+  for(const target of [.3,.5,.7]){
+    const best=candidates.reduce((a,b)=>!a||Math.abs(b.t-target)*100+b.offset*.15<Math.abs(a.t-target)*100+a.offset*.15?b:a,null);
+    const point=project(best.p).slice(0,2);
+    if(!anchors.some(p=>Math.hypot(p[0]-point[0],p[1]-point[1])<8))anchors.push(point);
+  }
+  for(let i=0;i<candidates.length;i+=Math.max(1,Math.floor(candidates.length/30))){
+    const point=project(candidates[i].p).slice(0,2);
+    if(!anchors.some(p=>Math.hypot(p[0]-point[0],p[1]-point[1])<14))anchors.push(point);
+  }
+  return anchors;
+}
 function assemblySvg(){
   if(!cadBodies.length)return '';
   const W=1600,H=900,mins=[Infinity,Infinity,Infinity],maxs=[-Infinity,-Infinity,-Infinity];
   for(const body of cadBodies)for(let k=0;k<3;k++){mins[k]=Math.min(mins[k],body.bounds.lo[k]);maxs[k]=Math.max(maxs[k],body.bounds.hi[k])}
-  const center=mins.map((value,k)=>(value+maxs[k])/2),cy=Math.SQRT1_2,sy=-Math.SQRT1_2,cp=Math.sqrt(2/3),sp=1/Math.sqrt(3);
+  const center=mins.map((value,k)=>(value+maxs[k])/2),cy=-Math.SQRT1_2,sy=Math.SQRT1_2,cp=Math.sqrt(2/3),sp=1/Math.sqrt(3);
   const rotate=p=>{const dx=p[0]-center[0],dy=p[1]-center[1],dz=p[2]-center[2],x=dx*cy+dy*sy,depth=-dx*sy+dy*cy;return [x,dz*cp-depth*sp,depth*cp+dz*sp]};
   const corners=[];for(const x of [mins[0],maxs[0]])for(const y of [mins[1],maxs[1]])for(const z of [mins[2],maxs[2]])corners.push(rotate([x,y,z]));
   const spanX=Math.max(1,...corners.map(p=>Math.abs(p[0]))),spanY=Math.max(1,...corners.map(p=>Math.abs(p[1])));
   const scale=Math.min(470/spanX,350/spanY);
   const project=p=>{const r=rotate(p);return [965+r[0]*scale,440-r[1]*scale,r[2]]};
-  const byBody=cadBodies.map(body=>{const midpoint=body.bounds.lo.map((value,k)=>(value+body.bounds.hi[k])/2),anchors=[project(midpoint).slice(0,2)];for(const id of body.ids){const positions=cadMeshes[id].attributes.position.array,count=positions.length/3,stride=Math.max(1,Math.floor(count/22));for(let i=0;i<count;i+=stride)anchors.push(project([positions[i*3],positions[i*3+1],positions[i*3+2]]).slice(0,2))}return {body,row:linkedRow(body),point:project(midpoint),anchors}});
+  const byBody=cadBodies.map(body=>{const midpoint=body.bounds.lo.map((value,k)=>(value+body.bounds.hi[k])/2),anchors=tubeSurfaceAnchors(body,project);return {body,row:linkedRow(body),point:project(midpoint),anchors}});
   const hull=LeaderLayout.convexHull(byBody.flatMap(entry=>entry.anchors));
-  const layout=LeaderLayout.layout(byBody.map(entry=>({...entry,number:entry.body.number,center:entry.point.slice(0,2)})),{x:319,y:22,w:1263,h:752},{avoidPolygon:hull});
+  const layout=LeaderLayout.layout(byBody.map(entry=>({...entry,number:entry.body.number,center:entry.point.slice(0,2)})),{x:319,y:22,w:1263,h:752},{avoidPolygon:hull,requireOutside:true});
   if(!layout.complete)throw Error(`Could not place every assembly balloon without crossing (${layout.callouts.length}/${cadBodies.length}). Export a smaller body set for a readable sheet.`);
   const callouts=layout.callouts;
-  let lines='';for(const entry of byBody){const body=entry.body;let path='';for(const id of body.ids){const mesh=cadMeshes[id],vertices=mesh.attributes.position.array,indices=mesh.index.array,triangles=Math.floor(indices.length/3),stride=Math.max(1,Math.ceil(triangles/180));for(let i=0;i<triangles;i+=stride){const projected=[];for(let j=0;j<3;j++){const offset=indices[i*3+j]*3;projected.push(project([vertices[offset],vertices[offset+1],vertices[offset+2]]))}path+=`M${round(projected[0][0])},${round(projected[0][1])}L${round(projected[1][0])},${round(projected[1][1])}L${round(projected[2][0])},${round(projected[2][1])}Z`}}lines+=`<path d="${path}" fill="none" stroke="${body.number===cadBodies[cadSelected]?.number?'#1d658b':'#43576a'}" stroke-opacity="${body.number===cadBodies[cadSelected]?.number?'.7':'.27'}" stroke-width="${body.number===cadBodies[cadSelected]?.number?'1.6':'.75'}"/>`}
-  const leaderLines=callouts.map(entry=>{const [x,y]=entry.balloon,[ax,ay]=entry.anchor,distance=Math.hypot(x-ax,y-ay),endX=x+(ax-x)*11/distance,endY=y+(ay-y)*11/distance;return `<line class="balloon-leader" data-leader="${entry.body.number}" x1="${round(ax)}" y1="${round(ay)}" x2="${round(endX)}" y2="${round(endY)}" stroke="#668398" stroke-width="1.1"/>`}).join('');
-  const balloons=callouts.map(entry=>{const number=entry.row?.item??entry.body.number;return `<g data-body="${entry.body.number}"><circle cx="${round(entry.balloon[0])}" cy="${round(entry.balloon[1])}" r="13" fill="white"/><circle cx="${round(entry.balloon[0])}" cy="${round(entry.balloon[1])}" r="11" fill="white" stroke="#334a5e" stroke-width="1.3"/><text x="${round(entry.balloon[0])}" y="${round(entry.balloon[1]+3.5)}" text-anchor="middle" font-size="10" font-family="Arial" font-weight="700" fill="#263e52">${safe(number)}</text></g>`}).join('');
+  let lines='';for(const entry of byBody){const body=entry.body;let path='';for(const id of body.ids){const mesh=cadMeshes[id],vertices=mesh.attributes.position.array,indices=mesh.index.array,triangles=Math.floor(indices.length/3),stride=Math.max(1,Math.ceil(triangles/180));for(let i=0;i<triangles;i+=stride){const projected=[];for(let j=0;j<3;j++){const offset=indices[i*3+j]*3;projected.push(project([vertices[offset],vertices[offset+1],vertices[offset+2]]))}path+=`M${round(projected[0][0])},${round(projected[0][1])}L${round(projected[1][0])},${round(projected[1][1])}L${round(projected[2][0])},${round(projected[2][1])}Z`}}lines+=`<path d="${path}" fill="none" stroke="${tubeColor(entry.row?.item??body.number)}" stroke-opacity="${body.number===cadBodies[cadSelected]?.number?'.95':'.5'}" stroke-width="${body.number===cadBodies[cadSelected]?.number?'1.7':'1'}"/>`}
+  const leaderLines=callouts.map(entry=>{const [x,y]=entry.balloon,[ax,ay]=entry.anchor,distance=Math.hypot(x-ax,y-ay),endX=x+(ax-x)*11/distance,endY=y+(ay-y)*11/distance,color=tubeColor(entry.row?.item??entry.body.number);return `<g><line class="balloon-leader" data-leader="${entry.body.number}" x1="${round(ax)}" y1="${round(ay)}" x2="${round(endX)}" y2="${round(endY)}" stroke="${color}" stroke-width="1.15"/><circle cx="${round(ax)}" cy="${round(ay)}" r="2.2" fill="${color}"/></g>`}).join('');
+  const balloons=callouts.map(entry=>{const number=entry.row?.item??entry.body.number,color=tubeColor(number);return `<g data-body="${entry.body.number}"><circle cx="${round(entry.balloon[0])}" cy="${round(entry.balloon[1])}" r="11" fill="white" stroke="${color}" stroke-width="2"/><text x="${round(entry.balloon[0])}" y="${round(entry.balloon[1]+3.5)}" text-anchor="middle" font-size="10" font-family="Arial" font-weight="700" fill="${color}">${safe(number)}</text></g>`}).join('');
   const tableRows=byBody.map((entry,i)=>{const row=entry.row,spec=cadSpecs[entry.body.number-1],y=108+i*10.3,source=row||spec,profile=source&&source.od&&source.wall?`${source.type} ${fmt(source.od)} × ${fmt(source.wall)}${source.bendFlag==='Bent'?' · BENT':''}`:'STEP body · specs pending',len=row?.length?fmt(row.length,3):'—';return `<text x="31" y="${round(y)}">${safe(row?.item??entry.body.number)}</text><text x="68" y="${round(y)}">${safe(profile)}</text><text x="277" y="${round(y)}" text-anchor="end">${safe(len)}</text>`}).join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Fixed isometric frame assembly with numbered tube callouts" data-layout-complete="${layout.complete}"><rect width="${W}" height="${H}" fill="#fff"/><rect x="15" y="15" width="1570" height="870" fill="none" stroke="#b5c1ca"/><path d="M 315 15 V 785 M 15 785 H 1585" stroke="#b5c1ca" fill="none"/><text x="30" y="47" font-family="Arial" font-weight="700" font-size="24" fill="#1c3a51">FRAME TUBE SET</text><text x="30" y="68" font-family="Arial" font-size="12" fill="#63788a">${safe(cadFilename)} · ${cadBodies.length} individual bodies</text><rect x="24" y="83" width="278" height="685" fill="#fbfcfd" stroke="#cbd5de"/><g font-family="Arial" font-size="8.5" fill="#34495b"><text x="31" y="97" font-weight="700">ITEM</text><text x="68" y="97" font-weight="700">TUBE / BODY</text><text x="277" y="97" text-anchor="end" font-weight="700">CUT IN.</text>${tableRows}</g><defs><clipPath id="assembly-clip"><rect x="398" y="30" width="1115" height="744"/></clipPath></defs><g clip-path="url(#assembly-clip)">${lines}</g>${leaderLines}${balloons}<text x="330" y="807" font-family="Arial" font-size="12" fill="#304d64">3D ASSEMBLY · FIXED ISOMETRIC VIEW · ${callouts.length}/${cadBodies.length} CALLOUTS</text><text x="330" y="829" font-family="Arial" font-size="10" fill="#677b8d">Item bubbles refer to STEP bodies and linked tube-set rows. Geometry positions use the original STEP coordinates.</text><text x="330" y="846" font-family="Arial" font-size="10" fill="#677b8d">Verify profile, wall, cut length, bend planes, angles, and radii before fabrication.</text><text x="1300" y="844" font-family="Arial" font-size="12" font-weight="700" fill="#1c3a51">FRAME ORDER STUDIO</text></svg>`;
 }

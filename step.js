@@ -10,14 +10,16 @@ async function readStep(file){
   stepStatus(`Reading ${file.name} and separating solid bodies…`);
   let worker;
   try{
-    const buffer=await file.arrayBuffer();worker=new Worker('step-worker.js?v=8');
+    const buffer=await file.arrayBuffer();worker=new Worker('step-worker.js?v=9');
     const answer=await new Promise((resolve,reject)=>{worker.onmessage=e=>resolve(e.data);worker.onerror=e=>reject(new Error(e.message||'CAD importer failed'));worker.postMessage(buffer,[buffer])});
     if(!answer.ok)throw Error(answer.error);
     const result=answer.result;
     if(!result.success||!result.meshes?.length)throw Error('No usable solid bodies were returned. Re-export the solid bodies from SolidWorks and try again.');
     if(answer.splitError)throw Error(`The solid STEP files could not be isolated: ${answer.splitError}`);
     cadMeshes=result.meshes;cadParts=answer.parts||[];cadSpecs=answer.specs||[];
-    cadBodies=collectBodies(result.root,cadMeshes,cadParts);
+    const ids=answer.partMeshIds||[];
+    if(ids.length!==cadParts.length||new Set(ids).size!==ids.length)throw Error('The STEP body-to-export mapping is incomplete. No numbered drawing was generated.');
+    cadBodies=cadParts.map((part,i)=>({number:i+1,name:part.solidName,ids:[ids[i]],bounds:bodyBounds({ids:[ids[i]]},cadMeshes)}));
     if(!cadBodies.length||cadParts.length!==cadBodies.length)throw Error('Body and STEP file counts differ. The export needs review.');
     cadSelected=0;$('stepCount').textContent=`${cadBodies.length} ${cadBodies.length===1?'body':'bodies'}`;
     $('stepResults').hidden=false;renderCadBodies();
@@ -45,6 +47,7 @@ async function buildStepPackage(includeLaserReview=false){
     window.lastLaserReviewSummary=await window.addLaserReviewToZip(zip);
   }
   if(cadSpecs.length)zip.file('detected-tube-specs.csv',csv([['balloon number','STEP body','export base name','profile','outside size in','wall in','bend flag','bend angles degrees','bend CLRs in','profile evidence','bend evidence'],...cadBodies.map((body,i)=>[bodyBalloonNumber(body),body.number,tubeFileBase(body),cadSpecs[i]?.type||'Unspecified',cadSpecs[i]?.od||'',cadSpecs[i]?.wall||'',cadSpecs[i]?.bendFlag||'Review',(cadSpecs[i]?.bends||[]).map(b=>b.angle).join('; '),(cadSpecs[i]?.bends||[]).map(b=>b.clr).join('; '),cadSpecs[i]?.specBasis||'',cadSpecs[i]?.bendBasis||''])]));
+  zip.file('body-number-geometry-map.csv',csv([['balloon number','STEP solid id','source solid name','reader mesh index','bounds low XYZ in','bounds high XYZ in','individual STEP filename'],...cadBodies.map(body=>[bodyBalloonNumber(body),cadParts[body.number-1]?.solidId||'',body.name,body.ids[0],body.bounds.lo.map(v=>v.toFixed(5)).join('; '),body.bounds.hi.map(v=>v.toFixed(5)).join('; '),`${tubeFileBase(body)}.step`])]));
   zip.file('README.txt',`${cadFilename}\n${cadBodies.length} individual STEP solids, three-view SVG drawings, and a numbered isometric assembly SVG.\n${includeLaserReview?'The folder "Tube laser reviewed parts" contains a corresponding numbered STEP for each body. Read tube-laser-review.csv: reviewed entries have two planar 45-degree ends; NEEDS-CAD-REVIEW entries retain their source geometry. All bevels are additive. Add copes and verify assembly fit before fabrication.\n':''}\nPart filenames begin with the balloon number and include the detected tube type, outside size, and wall. Each original STEP file contains one analytic solid with source geometry preserved. The largest overall axis is the baseline on each body sheet. Bend numbers B1, B2, etc. identify geometric bends on the body drawing; angles are inferred from STEP toroidal face boundaries and adjacent tube axes. All bend angles and centerline radii require CAD review before fabrication.\n\nReference: VR3 Solid Modeling guide (2023-06-27), https://vr3.ca/documents/SolidModeling.20230627.pdf. Keep balloon, BOM, and part numbers consistent.\n`);
   stepStatus('Compressing the STEP and drawing package…');
   cadPackage=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
