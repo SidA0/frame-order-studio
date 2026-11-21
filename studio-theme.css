@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* Shared visual language for the FSAE tools. App geometry and behavior stay in each tool. */
+:root {
+  color-scheme: dark;
+  --navy: #0b151b;
+  --bg: #0b151b;
+  --paper: #0b151b;
+  --ground: #0b151b;
+  --dark: #0b151b;
+  --panel: #13232c;
+  --panel2: #192d37;
+  --ink: #eaf0ed;
+  --muted: #a4b6bc;
+  --line: #30444d;
+  --blue: #8eafb9;
+  --orange: #e7a16a;
+  --burnt: #d88751;
+  --burnt-dark: #b86d3d;
+  --green: #83c6b4;
+  --studio-input: #101e26;
+  --studio-raised: #152630;
+  --studio-white: #f4f5ef;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', 'Segoe UI', sans-serif; font-size: 16px; }
+button, input, select, textarea { font: inherit; }
+button, a, label[for], summary { -webkit-tap-highlight-color: transparent; }
+:where(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+::selection { background: #e7a16a; color: #0b151b; }
+a { color: var(--orange); }
+a:hover { color: #ffd0a9; }
+
+/* Navigation and title pages */
+.topbar, .site-header { min-height: 76px; height: auto; background: #0e1b23; border-bottom: 1px solid var(--line); color: var(--ink); padding-top: 12px; padding-bottom: 12px; }
+.topbar { gap: 20px; }
+.topbar .brand, .site-header .brand { font-family: 'Space Grotesk', sans-serif; letter-spacing: -.025em; font-size: 17px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.topbar .brand b { font-weight: 700; }
+.topbar .brand .mark, .topbar .brand-icon, .site-header .brand-mark { flex: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid #a9714c; border-radius: 8px; color: var(--orange); font-family: 'Space Grotesk', sans-serif; font-size: 20px; letter-spacing: -.08em; transform: none; padding: 0; }
+.site-header .brand-mark span { align-self: auto; margin: 0; font-size: 14px; }
+.topbar .brand .mark span { color: var(--orange); }
+.site-header .brand strong { letter-spacing: -.01em; font-family: 'Space Grotesk', sans-serif; font-size: 17px; }
+.site-header .brand small { color: var(--muted); letter-spacing: .06em; font-size: 11px; }
+.topbar nav, .topright, .top-right, .header-actions { display: flex; align-items: center; flex-wrap: wrap; gap: clamp(12px, 2vw, 28px); }
+.topbar nav a, .topbar .nav-link, .site-header .header-actions a, .studio-home { color: #c4d0d1; text-decoration: none; font-size: 14px; font-weight: 600; letter-spacing: 0; border: 0; padding: 8px 0; transition: color .2s ease; }
+.topbar nav a:hover, .topbar nav a.active, .topbar nav a[aria-current], .site-header .header-actions a:hover, .studio-home:hover { color: #fff; border-color: var(--orange); }
+.studio-home { white-space: nowrap; }
+.studio-home::before { content: '◫'; color: var(--orange); margin-right: 9px; font-size: 15px; }
+.topbar .privacy, .status-dot { color: var(--muted); font-size: 12px; letter-spacing: 0; }
+.privacy:first-letter { color: var(--green); }
+.topbar .text-button, .update-button { color: var(--ink); font-size: 14px; font-weight: 600; }
+.topbar .text-button:hover { color: var(--orange); }
+main { max-width: 1380px; }
+.hero, .tutorial-hero { position: relative; isolation: isolate; min-height: 350px; border-bottom: 1px solid var(--line); }
+.hero::before, .tutorial-hero::before { content: ''; position: absolute; z-index: -1; right: 8%; top: 12%; width: min(34vw, 420px); aspect-ratio: 1; border: 1px solid #e7a16a14; border-radius: 50%; box-shadow: 0 0 0 55px #e7a16a06, 0 0 0 110px #e7a16a04; pointer-events: none; }
+.hero h1, .tutorial-hero h1 { color: var(--ink); font-family: 'Space Grotesk', sans-serif; font-size: clamp(42px, 4.8vw, 70px); line-height: 1.04; letter-spacing: -.055em; font-weight: 600; }
+.hero h1 em, .tutorial-hero h1 em, .hero h1 span { color: var(--orange); font-style: normal; }
+.hero p, .tutorial-hero p, .hero-copy { color: var(--muted); font-size: 16px; line-height: 1.65; }
+.eyebrow, .kicker, .card-kicker, .toolbar-kicker { color: var(--orange); font-size: 12px; letter-spacing: .12em; font-weight: 700; }
+.section-head h2, .tutorial-section h2, .panel-heading h2, .result-header h2, .visualization h2 { color: var(--ink); font-family: 'Space Grotesk', sans-serif; letter-spacing: -.035em; }
+.section-aside { color: var(--muted); font-size: 13px; }
+.hero-card, .target-card, .tutorial-callout { background: #172934; border: 1px solid #3a5058; box-shadow: none; border-radius: 14px; }
+.hero-card strong, .target-card strong, .tutorial-callout strong { color: var(--ink); }
+.hero-card span, .hero-card small, .target-card span, .tutorial-callout span { color: var(--muted); }
+.hero-rule { background: var(--line); }
+.notice, .caution, .tutorial-notice { background: #241f1c; border: 1px solid #5c4331; border-left: 3px solid var(--orange); border-radius: 8px; color: var(--ink); }
+.notice p, .caution, .notice strong { color: #e0d0c3; }
+.notice p { font-size: 14px; line-height: 1.55; }
+.notice-icon { background: #493426; color: #ffc293; }
+
+/* Shared work surfaces */
+.upload-card, .explain-card, .drop-zone, .example-panel, .source-panel, .control-panel,
+.form-panel, .preview-panel, .chart-panel, .result-card, .export-grid article,
+.list-panel, .drawing-panel, .tutorial-steps article, .tutorial-card, .tutorial-diagram,
+.viewer-panel, .example-facts, .panel, .target-card, .hero-card, .tutorial-callout,
+.summary-grid, .readouts, .table-wrap, .table-scroll, .equations, .analysis-details,
+.footer-cta, .tutorial-footer, .workflow-tabs, .assembly-pane, .trade-detail, .trade-chart-wrap {
+  background: var(--panel); border-color: var(--line); box-shadow: none; border-radius: 12px;
+}
+.upload-card, .drop-zone, .drop { border-style: dashed; border-color: #55707a; }
+.upload-card:hover, .drop-zone:hover, .drop-zone.dragover, .drop:hover { background: #1c333d; border-color: var(--orange); transform: translateY(-2px); }
+.upload-card, .drop-zone, .drop, .export-grid article, .result-card { transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+.export-grid article:hover { border-color: #59707a; transform: translateY(-2px); }
+.hero-card, .target-card { transform: none; }
+.summary-grid > div, .readouts > div, .dimension-grid > div, .evidence-grid > div { border-color: var(--line); }
+.summary-grid strong, .readouts strong, .dimension-grid strong, .evidence-grid b { color: var(--ink); font-family: 'Space Grotesk', sans-serif; }
+.summary-grid span, .readouts span, .dimension-grid span, .detail-label, .evidence-grid span { color: var(--muted); }
+.upload-card small, .explain-card small, .drop-zone span, .example-panel p, .status { font-size: 14px; line-height: 1.5; }
+.card-action, .hero-card small, .hero-card span { font-size: 13px; letter-spacing: 0; }
+.card-action, .upload-icon, .card-icon, .export-icon { color: var(--orange); }
+.primary, .update-button, .button-link.primary { background: var(--orange); color: #172028; border: 1px solid var(--orange); border-radius: 7px; font-size: 14px; font-weight: 700; letter-spacing: 0; min-height: 44px; padding: 11px 17px; box-shadow: none; transition: background .2s ease, transform .2s ease; }
+.primary:hover, .update-button:hover, .button-link.primary:hover { background: #ffc293; color: #172028; transform: translateY(-2px); }
+.primary:active, .update-button:active { transform: translateY(0); }
+.secondary, .button-link.secondary { background: transparent; color: var(--ink); border: 1px solid #5a737b; border-radius: 7px; font-size: 14px; font-weight: 600; min-height: 44px; padding: 11px 17px; }
+.secondary:hover, .button-link.secondary:hover { background: #223943; color: #fff; }
+.text-action, .inline-button, .inline-action, td button, .small-actions button { color: var(--orange); font-size: 14px; }
+button:disabled { opacity: .45; transform: none !important; }
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), select, textarea, #repo-url, .sidebar-search input { background: var(--studio-input); color: var(--ink); border: 1px solid #4a626b; border-radius: 6px; }
+input::placeholder, textarea::placeholder { color: #849ba3; }
+input[type=checkbox], input[type=radio], input[type=range] { accent-color: var(--orange); }
+label, .field-grid label, .bend-fields label { color: #d4dfe0; }
+.field-grid label, .bend-fields label, .source-panel label, .control-panel label { font-size: 14px; }
+.field-grid label span, .bend-fields label span { color: var(--muted); }
+th, .feature-table th, .document th { background: #1c3039; color: #c1d0d3; border-color: var(--line); font-size: 12px; }
+td, .feature-table td, .document td { color: var(--ink); border-color: var(--line); font-size: 13px; }
+tbody tr:hover, tbody tr.selected { background: #1d333d; }
+.pill, .pattern-tag, .chip { background: #213641; color: #c9dadd; border-color: var(--line); }
+.pill.ready, .pill.high { background: #1c3933; color: #a9e2ca; }
+.pill.review { background: #453124; color: #ffc293; }
+.chip.active { background: #704a30; color: #fff; border-color: var(--orange); }
+.table-wrap, .table-scroll { overflow: auto; }
+.small-note, .under-table, .export-note, .footnote, .preview-note, .confidence-note { color: var(--muted); font-size: 13px; line-height: 1.55; }
+.export-grid p, .tutorial-card p, .tutorial-steps p, .tutorial-section > p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+.drawing-preview, .preview, .cad-viewer, .preview-canvas-wrap { background: #0c1b23; border-color: var(--line); }
+.drawing-preview svg, .preview svg { background: var(--studio-white); }
+.footer-cta, .tutorial-footer { background: #1b3039; }
+.footer-cta h2, .tutorial-footer h2 { color: var(--ink); }
+footer { background: #0e1b23; color: var(--muted); border-top: 1px solid var(--line); }
+
+/* Piecut's native dark UI keeps its geometry-specific controls. */
+.workflow-tabs { border: 1px solid var(--line); }
+.workflow-tabs button.active { background: var(--orange); color: #15222a; }
+.panel, .result-card, .analysis, .solver-panel { border-color: var(--line); }
+.drop { background: #13232c; }
+.tutorial-figure { border-color: var(--line); border-radius: 10px; overflow: hidden; }
+
+/* Rules reader: dark reading surface with a clear document hierarchy. */
+.rules-reader { background: var(--bg); }
+.rules-reader .topline { height: 0; }
+.rules-reader .site-header { background: #0e1b23; }
+.rules-reader .notice { border-radius: 0; margin: 0; background: #241f1c; border-left: 0; border-right: 0; }
+.rules-reader .layout { min-height: calc(100vh - 76px); }
+.rules-reader .sidebar, .rules-reader .right-rail { background: #101e26; border-color: var(--line); }
+.rules-reader .main-column, .rules-reader .document { background: #12212a; color: var(--ink); }
+.rules-reader .hero { background: #152732; min-height: 300px; border-bottom: 1px solid var(--line); }
+.rules-reader .hero::after { opacity: .35; }
+.rules-reader .hero h1, .rules-reader .document h1 { font-family: 'Space Grotesk', sans-serif; }
+.rules-reader .hero h1 em { color: var(--orange); }
+.rules-reader .content-toolbar, .rules-reader .mobile-nav, .rules-reader .site-footer { background: #172934; border-color: var(--line); }
+.rules-reader .document h1, .rules-reader .document h2, .rules-reader .document h3, .rules-reader .document h4, .rules-reader .document strong, .rules-reader .content-toolbar strong { color: var(--ink); }
+.rules-reader .document a, .rules-reader .notice a { color: #ffc293; }
+.rules-reader .document blockquote, .rules-reader .search-summary { background: #293028; color: #e1d4c2; border-color: var(--orange); }
+.rules-reader .document code, .rules-reader .document th, .rules-reader .document pre { background: #1b3039; color: #e3eceb; }
+.rules-reader .document td { color: #d5e0df; }
+.rules-reader .document img { background: #f4f5ef; }
+.rules-reader .section-link, .rules-reader .right-rail a, .rules-reader .source-link, .rules-reader .toolbar-actions a, .rules-reader .toolbar-actions button { color: #b8c9ca; }
+.rules-reader .section-link:hover, .rules-reader .section-link.active { background: #283b3c; color: #ffd0a9; }
+.rules-reader .section-link .code, .rules-reader .sidebar-foot, .rules-reader .rail-note, .rules-reader .rail-title, .rules-reader .nav-group, .rules-reader .filter-label, .rules-reader .sidebar-search label, .rules-reader .sort-row label { color: var(--muted); }
+.rules-reader .class-tabs { background: #1c3039; }
+.rules-reader .class-tabs button { color: var(--muted); }
+.rules-reader .class-tabs button[aria-pressed=true] { background: #65462f; color: #fff; box-shadow: none; }
+.rules-reader .sort-row select { background-color: transparent; color: var(--ink); }
+.rules-reader dialog, .rules-reader #quick-panel { background: #172934; color: var(--ink); border: 1px solid var(--line); }
+.rules-reader dialog p, .rules-reader dialog label { color: var(--muted); }
+.rules-reader .right-rail a { border-color: var(--line); }
+.rules-reader .right-rail a:hover { border-color: var(--orange); color: var(--orange); }
+.rules-reader .rule-ref { color: #ffc293; }
+.rules-reader .rule-ref:hover, .rules-reader .rule-ref:focus-visible { background: #543826; color: #fff; }
+.rules-reader .quick-header, .rules-reader .quick-actions { background: #1b3039; color: var(--ink); }
+.rules-reader .quick-context { color: var(--orange); }
+.rules-reader .quick-body.document li.selected-subpart { background: #4c392b; box-shadow: 0 0 0 5px #4c392b; }
+.rules-reader .dialog-top h2 { color: var(--ink); font-family: 'Space Grotesk', sans-serif; }
+
+@media (max-width: 760px) {
+  .topbar, .site-header { padding: 12px 18px; }
+  .topbar .brand, .site-header .brand strong { font-size: 15px; }
+  .topbar nav, .topright, .top-right, .header-actions { gap: 12px; }
+  .topbar nav a, .topbar .nav-link, .studio-home { font-size: 13px; }
+  .topbar .privacy, .status-dot { display: none; }
+  main { padding-left: 18px; padding-right: 18px; }
+  .hero, .tutorial-hero { min-height: 0; }
+  .hero::before, .tutorial-hero::before { display: none; }
+  .hero h1, .tutorial-hero h1 { font-size: clamp(38px, 9vw, 56px); }
+  .hero p, .tutorial-hero p { font-size: 15px; }
+  .head-actions, .form-actions { justify-content: flex-start; }
+  .rules-reader .mobile-nav { background: #172934; }
+  .rules-reader .mobile-nav button { background: #1c3039; color: var(--ink); border-color: var(--line); }
+}
+@media (max-width: 420px) {
+  .topbar .brand .mark, .topbar .brand-icon { width: 30px; height: 30px; }
+  .topbar .brand { gap: 7px; }
+  .topbar .brand, .site-header .brand strong { font-size: 13px; }
+  .topbar .text-button { display: none; }
+  .studio-home::before { display: none; }
+  .workflow-tabs { display: grid; grid-template-columns: 1fr; overflow: visible; }
+  .workflow-tabs button { width: 100%; text-align: left; border-right: 0; border-bottom: 1px solid var(--line); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .upload-card, .drop-zone, .drop, .export-grid article, .primary { transition: none; }
+}
