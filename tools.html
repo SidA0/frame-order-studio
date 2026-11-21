@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#0b151b">
   <meta name="page-type" content="software">
   <meta name="site-kind" content="software">
-  <meta name="description" content="Seven browser-based tools for Formula SAE frame fabrication, rules reference, and exhaust design.">
+  <meta name="description" content="Six connected browser workspaces for Formula SAE frame fabrication, rules reference, and exhaust design.">
   <meta property="og:title" content="FSAE Tools · Frame, rules, and exhaust">
-  <meta property="og:description" content="Seven browser-based tools for Formula SAE engineering work.">
+  <meta property="og:description" content="Six connected browser workspaces for Formula SAE engineering work.">
   <title>FSAE Tools · Frame, rules, and exhaust</title>
   <link rel="stylesheet" href="tools.css">
 </head>
@@ -17,18 +17,18 @@
   <header class="site-nav">
     <a class="wordmark" href="tools.html" aria-current="page"><span class="logo-mark">F<span>·</span></span><span>FSAE <b>TOOLS</b></span></a>
     <nav aria-label="Tool categories"><a href="#frame">Frame</a><a href="#rules">Rules</a><a href="#exhaust">Exhaust</a></nav>
-    <span class="nav-count">07 tools / one workspace</span>
+    <span class="nav-count">06 tools / one workspace</span>
   </header>
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy" data-enter>
         <span class="overline">Engineering workbench / 2027 season</span>
         <h1 id="hero-title">FSAE tools for <em>the work between CAD and the car.</em></h1>
-        <p>Seven focused tools for frame parts, rule lookup, and exhaust work. Choose the job you are working on and open its workspace.</p>
+        <p>Six focused workspaces for frame parts, rule lookup, and exhaust work. Choose the job you are working on and open its workspace.</p>
         <a class="button" href="#frame">Browse the tools</a>
       </div>
       <div class="hero-drawing" aria-hidden="true" data-enter>
-        <div class="drawing-top"><span>FRAME / EXHAUST / RULES</span><span>TOOL SET 07</span></div>
+        <div class="drawing-top"><span>FRAME / EXHAUST / RULES</span><span>TOOL SET 06</span></div>
         <svg viewBox="0 0 610 490" preserveAspectRatio="xMidYMid meet">
           <defs><pattern id="hero-grid" width="31" height="31" patternUnits="userSpaceOnUse"><path d="M31 0H0V31" fill="none" stroke="#31424a" stroke-width=".7"/></pattern><linearGradient id="tube" x1="0" x2="1"><stop stop-color="#7694a0"/><stop offset=".48" stop-color="#ced9d7"/><stop offset="1" stop-color="#6f8a93"/></linearGradient></defs>
           <rect width="610" height="490" fill="url(#hero-grid)"/>
@@ -39,7 +39,7 @@
           <g fill="#adbec1" font-family="monospace" font-size="12" letter-spacing="1"><text x="386" y="128">BEND / CUT PLAN</text><text x="142" y="400">STOCK + WALL</text><text x="386" y="376">EXPORT GEOMETRY</text></g>
           <circle cx="519" cy="359" r="5" fill="#e7a16a"/><circle cx="248" cy="381" r="5" fill="#e7a16a"/>
         </svg>
-        <div class="drawing-bottom"><span>Source geometry → review → fabrication output</span><span>01—07</span></div>
+        <div class="drawing-bottom"><span>Source geometry → review → fabrication output</span><span>01—06</span></div>
       </div>
     </section>
 
@@ -57,12 +57,11 @@
     </section>
 
     <section class="tool-section" id="exhaust" aria-labelledby="exhaust-title">
-      <div class="section-heading"><div><span class="overline">Exhaust design</span><h2 id="exhaust-title">Shape, measure, model, and flatten.</h2></div><p>Plan pie cuts, inspect measured FFT data, compare muffler scenarios, and flatten cone surfaces.</p></div>
-      <div class="tool-grid two exhaust-grid">
+      <div class="section-heading"><div><span class="overline">Exhaust design</span><h2 id="exhaust-title">Shape, measure, model, and flatten.</h2></div><p>Plan pie cuts, analyze exhaust sound, explore muffler changes, and flatten cone surfaces.</p></div>
+      <div class="tool-grid three">
         <a class="tool-card" href="https://sida0.github.io/piecut-studio/"><div class="card-top"><span>04 / Exhaust</span><span class="card-icon">P·</span></div><div class="card-visual" aria-hidden="true"><svg viewBox="0 0 360 185"><path d="M25 134h99c24 0 33-20 44-52 10-32 22-46 49-46h117" fill="none" stroke="#9db7bf" stroke-width="39" stroke-dasharray="39 4"/><path d="M25 134h99c24 0 33-20 44-52 10-32 22-46 49-46h117" fill="none" stroke="#e7a16a" stroke-width="2" stroke-dasharray="5 8"/></svg></div><div class="card-body"><h3>Piecut Studio</h3><p>Convert bent tube STEP bodies into shared pie-cut profiles and assembly packages.</p><span class="card-action">Open pie-cut workspace <span aria-hidden="true">↗</span></span></div></a>
-        <a class="tool-card" href="https://sida0.github.io/muffler-analysis-tool/"><div class="card-top"><span>05 / Exhaust</span><span class="card-icon">M·</span></div><div class="card-visual" aria-hidden="true"><svg viewBox="0 0 520 185"><path d="M30 148h458M30 23v125" fill="none" stroke="#55717a" stroke-width="2"/><path d="M30 123 90 114 150 104 210 85 270 92 330 51 390 65 450 31 488 41" fill="none" stroke="#e7a16a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 136 90 128 150 124 210 112 270 117 330 99 390 91 450 81 488 84" fill="none" stroke="#9fc1c4" stroke-width="2"/><path d="M330 51v97" stroke="#e7a16a" stroke-width="1" stroke-dasharray="4 7"/><circle cx="330" cy="51" r="5" fill="#e7a16a"/></svg></div><div class="card-body"><h3>Muffler Analysis Tool</h3><p>Turn calibrated FFT measurements into RPM versus dBC trends and leading 300 Hz ranges.</p><span class="card-action">Open analysis tool <span aria-hidden="true">↗</span></span></div></a>
-        <a class="tool-card" href="https://sida0.github.io/muffler-spectrum-studio/"><div class="card-top"><span>06 / Exhaust</span><span class="card-icon">S·</span></div><div class="card-visual" aria-hidden="true"><svg viewBox="0 0 360 185"><path d="M22 155h315M31 25v130" fill="none" stroke="#55717a" stroke-width="2"/><path d="M31 112c30-16 40-67 68-66s37 86 66 84 38-68 64-64 35 42 49 41 26-24 59-21" fill="none" stroke="#e7a16a" stroke-width="3"/><path d="M31 123c31-7 41-44 70-45s37 44 65 44 37-28 63-28 43 18 60 19 25-14 48-10" fill="none" stroke="#9fc1c4" stroke-width="2"/></svg></div><div class="card-body"><h3>Exhaust Spectrum Studio</h3><p>Compare relative exhaust spectrum scenarios for packing and side-branch resonators.</p><span class="card-action">Open spectrum tool <span aria-hidden="true">↗</span></span></div></a>
-        <a class="tool-card" href="https://sida0.github.io/cone-flat-studio/"><div class="card-top"><span>07 / Exhaust</span><span class="card-icon">C·</span></div><div class="card-visual" aria-hidden="true"><svg viewBox="0 0 360 185"><path d="M38 136 92 38h64l54 98" fill="none" stroke="#9fc0c8" stroke-width="2"/><ellipse cx="124" cy="136" rx="86" ry="19" fill="none" stroke="#e7a16a" stroke-width="2"/><ellipse cx="124" cy="38" rx="32" ry="8" fill="none" stroke="#9fc0c8" stroke-width="2"/><path d="M231 140a80 80 0 0 1 88-82l-16 24a51 51 0 0 0-52 53z" fill="#e7a16a28" stroke="#e7a16a" stroke-width="2"/></svg></div><div class="card-body"><h3>Cone Flat Studio</h3><p>Develop analytic STEP cone faces into true-size STEP and DXF sheet profiles.</p><span class="card-action">Open cone workspace <span aria-hidden="true">↗</span></span></div></a>
+        <a class="tool-card" href="https://sida0.github.io/muffler-spectrum-studio/analysis/"><div class="card-top"><span>05 / Exhaust</span><span class="card-icon">S·</span></div><div class="card-visual" aria-hidden="true"><svg viewBox="0 0 360 185"><path d="M22 155h315M31 25v130" fill="none" stroke="#55717a" stroke-width="2"/><path d="M31 112c30-16 40-67 68-66s37 86 66 84 38-68 64-64 35 42 49 41 26-24 59-21" fill="none" stroke="#e7a16a" stroke-width="3"/><path d="M31 123c31-7 41-44 70-45s37 44 65 44 37-28 63-28 43 18 60 19 25-14 48-10" fill="none" stroke="#9fc1c4" stroke-width="2"/></svg></div><div class="card-body"><h3>Exhaust Spectrum Studio</h3><p>Analyze FFT measurements by RPM, then explore packing, cones, and resonators with a relative scenario model.</p><span class="card-action">Open spectrum studio <span aria-hidden="true">↗</span></span></div></a>
+        <a class="tool-card" href="https://sida0.github.io/cone-flat-studio/"><div class="card-top"><span>06 / Exhaust</span><span class="card-icon">C·</span></div><div class="card-visual" aria-hidden="true"><svg viewBox="0 0 360 185"><path d="M38 136 92 38h64l54 98" fill="none" stroke="#9fc0c8" stroke-width="2"/><ellipse cx="124" cy="136" rx="86" ry="19" fill="none" stroke="#e7a16a" stroke-width="2"/><ellipse cx="124" cy="38" rx="32" ry="8" fill="none" stroke="#9fc0c8" stroke-width="2"/><path d="M231 140a80 80 0 0 1 88-82l-16 24a51 51 0 0 0-52 53z" fill="#e7a16a28" stroke="#e7a16a" stroke-width="2"/></svg></div><div class="card-body"><h3>Cone Flat Studio</h3><p>Develop analytic STEP cone faces into true-size STEP and DXF sheet profiles.</p><span class="card-action">Open cone workspace <span aria-hidden="true">↗</span></span></div></a>
       </div>
     </section>
   </main>

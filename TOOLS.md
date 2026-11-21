@@ -1,6 +1,6 @@
 # FSAE tools directory
 
-`tools.html` is the collection landing page at `/frame-order-studio/tools.html`. It links to the seven live tools without changing their workflows.
+`tools.html` is the collection landing page at `/frame-order-studio/tools.html`. It links to six workspaces, including the combined measured analysis and scenario model inside Exhaust Spectrum Studio.
 
 ## Adding a tool
 
